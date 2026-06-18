@@ -1,1 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retro TV Mobile</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
+    <!-- Mueble de la TV Vieja -->
+    <div class="tv-mueble">
+        <div class="antena izq"></div>
+        <div class="antena der"></div>
+
+        <div class="tv-frontal">
+            <!-- Pantalla CRT -->
+            <div class="crt-pantalla" id="pantalla">
+                <!-- Capas de video/estática -->
+                <div class="tv-static" id="tvStatic"></div>
+                <div class="vhs-glitch" id="vhsGlitch"></div>
+                <div class="screen-glare"></div>
+                
+                <span id="screenText">TV APAGADA</span>
+                <div id="tvSignalAnimation" class="signal-on">📺 SINTONIZADO</div>
+            </div>
+
+            <!-- Panel de Controles Lateral -->
+            <div class="tv-controles">
+                <div class="perilla"></div>
+                <div class="perilla"></div>
+                <div class="bocina-ranuras"></div>
+                <div class="bocina-ranuras"></div>
+                
+                <div class="tv-power-btn" id="powerBtn">
+                    <div class="tv-led" id="tvLed"></div>
+                </div>
+                <span class="power-label">POWER</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Indicador de Arrastre -->
+    <div class="indicador-arrastre" id="indicador" style="display: none;">
+        <span>▲ ARRASTRA EL DISQUETE ▲</span>
+    </div>
+
+    <!-- Unidad de Disquetera Mecánica -->
+    <div class="disquetera-unidad" id="dropZone">
+        <div class="disquetera-capa-fondo"></div>
+        
+        <!-- El disquete físico (Soporta Mouse y Touch) -->
+        <div class="disquete" id="floppyDisk">
+            <div class="disquete-label">DANE</div>
+            <div class="disquete-metal"></div>
+        </div>
+
+        <div class="disquetera-capa-frente"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
