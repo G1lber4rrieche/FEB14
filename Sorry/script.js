@@ -59,14 +59,13 @@ function stopSoftNoise() {
 }
 
 function playSintonizadoAudio() {
-    sintonizadoAudio = audioCtx.createOscillator();
-    const gainNode = audioCtx.createGain();
-    sintonizadoAudio.type = 'sine';
-    sintonizadoAudio.frequency.setValueAtTime(330, audioCtx.currentTime);
-    gainNode.gain.setValueAtTime(0.04, audioCtx.currentTime);
-    sintonizadoAudio.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
-    sintonizadoAudio.start();
+    // Apuntamos al archivo .ogg con el ruido de lluvia real
+    sintonizadoAudio = new Audio('grabacion.ogg');
+    sintonizadoAudio.volume = 0.85; // Súbele un poquito si la lluvia tapa mucho tu voz
+    sintonizadoAudio.loop = false;  // Se reproduce una sola vez
+    
+    // Le damos PLAY
+    sintonizadoAudio.play().catch(e => console.log("Error al reproducir el audio .ogg:", e));
 }
 
 // BOTÓN POWER
