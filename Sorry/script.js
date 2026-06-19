@@ -9,7 +9,7 @@ const floppyDisk = document.getElementById('floppyDisk');
 const dropZone = document.getElementById('dropZone');
 const indicador = document.getElementById('indicador');
 
-let audioCtx, noiseNode, softNoiseNode, sintonizadoAudio;
+let audioCtx, noiseNode, softNoiseNode;
 let tvEncendida = false;
 
 // 1. RUIDO BLANCO (Interferencia pesada de fondo)
@@ -38,7 +38,7 @@ function stopWhiteNoise() {
     if(noiseNode) { try { noiseNode.stop(); } catch(e){} noiseNode = null; }
 }
 
-// 2. RUIDITO BONITO (Fondo analógico suave que acompaña la sintonía)
+// 2. RUIDITO BONITO (Fondo analógico suave generado por código para iPhone)
 function startSoftNoise() {
     if (softNoiseNode) return;
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -56,7 +56,15 @@ function stopSoftNoise() {
     if(softNoiseNode) { try { softNoiseNode.stop(); } catch(e){} softNoiseNode = null; }
 }
 
-// ACCIÓN APAGAR TV (Resetea todo el entorno visual y frena en seco el audio)
+// TRUCO DE AUDIO PARA IPHONE (Activa los permisos táctiles integrados)
+function desbloquearAudioIOS() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+}
+
+// ACCIÓN APAGAR TV (Frena todo en seco al instante)
 function apagarTelevisorCompleto() {
     tvEncendida = false;
     tvLed.className = 'tv-led';
@@ -65,7 +73,7 @@ function apagarTelevisorCompleto() {
     tvStatic.style.display = 'none';
     vhsGlitch.style.display = 'none';
     tvSignalAnimation.style.display = 'none';
-    tvSignalAnimation.classList.remove('aberracion-vhs');
+    tvSignalAnimation.className = "signal-on"; 
     screenText.innerHTML = 'TV APAGADA';
     screenText.style.color = '#a1a1aa';
     screenText.style.display = 'block';
@@ -77,21 +85,11 @@ function apagarTelevisorCompleto() {
 
     stopWhiteNoise();
     stopSoftNoise();
-    
-    // CORRECCIÓN DE AUDIO: Detener por completo el archivo .ogg y resetear su línea de tiempo
-    if (sintonizadoAudio) { 
-        try { 
-            sintonizadoAudio.pause(); 
-            sintonizadoAudio.currentTime = 0; 
-        } catch(e) {
-            console.log("Error al detener reproductor de audio:", e);
-        } 
-        sintonizadoAudio = null; 
-    }
 }
 
 // BOTÓN DE ENCENDIDO MANUAL
 powerBtn.addEventListener('click', () => {
+    desbloquearAudioIOS();
     if (!tvEncendida) {
         tvEncendida = true;
         tvLed.classList.add('rojo');
@@ -115,6 +113,7 @@ let currentY = 0;
 
 function onDragStart(yPosition) {
     if (!tvEncendida || floppyDisk.classList.contains('tragado')) return;
+    desbloquearAudioIOS(); 
     isDragging = true;
     startY = yPosition;
 }
@@ -146,7 +145,7 @@ floppyDisk.addEventListener('touchstart', (e) => onDragStart(e.touches[0].client
 window.addEventListener('touchmove', (e) => onDragMove(e.touches[0].clientY));
 window.addEventListener('touchend', onDragEnd);
 
-/* --- SECUENCIA DE CANALES --- */
+/* --- SECUENCIA DE CANALES SIMULADA POR CÓDIGO --- */
 function ejecutarSecuenciaRetro() {
     floppyDisk.classList.add('tragado');
     indicador.style.display = 'none';
@@ -176,24 +175,23 @@ function ejecutarSecuenciaRetro() {
         }
     }, 3500);
 
-    // Paso 3: Sintonizado (Imagen / Video Final)
+    // Paso 3: Sintonizado (Muestra tu foto local img.png y activa ruido analógico por código)
     setTimeout(() => {
         if (!tvEncendida) return;
         
         stopWhiteNoise(); 
-        startSoftNoise(); 
+        startSoftNoise(); // Sonará la estática limpia directo en el iPhone
         
         vhsGlitch.style.display = 'none';
         screenText.style.display = 'none';
         
-        // Verificación e inyección de imagen
+        // Carga tu foto local
         const imgFinal = new Image();
         imgFinal.src = 'img.png';
         imgFinal.onload = function() {
             tvSignalAnimation.style.backgroundImage = "url('img.png')";
         };
         imgFinal.onerror = function() {
-            // Fallback: Si no hay imagen local, se rompe con el GIF online
             tvSignalAnimation.style.backgroundImage = "url('https://media1.tenor.com/m/4TFhZEyUqyYAAAAC/anime-waifu.gif')";
         };
         
@@ -203,24 +201,18 @@ function ejecutarSecuenciaRetro() {
         tvSignalAnimation.style.height = "100%";
         tvSignalAnimation.style.display = 'block'; 
         
-        // Activamos la clase de aberración y distorsión física
+        // Rompe la imagen estática usando la clase del CSS
         tvSignalAnimation.className = "signal-on aberracion-vhs";
         
         tvLed.classList.remove('rojo');
         tvLed.classList.add('verde'); 
 
-        // CARGA Y REPRODUCCIÓN DEL AUDIO
-        sintonizadoAudio = new Audio('grabacion.ogg');
-        
-        // Al terminar de hablar de forma natural, la TV se apaga por completo
-        sintonizadoAudio.onended = apagarTelevisorCompleto;
+        // Deja la imagen rompiéndose por 10 segundos en pantalla y luego apaga la TV
+        setTimeout(() => {
+            if (tvEncendida) { 
+                apagarTelevisorCompleto(); 
+            }
+        }, 10000); 
 
-        sintonizadoAudio.play().catch(error => {
-            console.log("Simulador Local: Reproduciendo estática de fondo por 5 segundos.");
-            setTimeout(() => {
-                // Si la TV sigue encendida y no se ha apagado a mano, corta el ciclo solo
-                if(tvEncendida) { apagarTelevisorCompleto(); }
-            }, 5000);
-        });
     }, 6500);
 }
