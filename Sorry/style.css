@@ -17,7 +17,7 @@ body {
 /* --- TELEVISIÓN RETRO RESPONSIVA --- */
 .tv-mueble {
     width: 100%;
-    max-width: 360px; /* Evita que abarque todo el ancho en el celular */
+    max-width: 360px;
     height: 260px;
     background: linear-gradient(135deg, #5c4033, #3d2b22);
     border: 8px solid #2b1e18;
@@ -74,7 +74,7 @@ body {
     z-index: 5;
 }
 
-/* GIF Estática tradicional */
+/* Capas de Estática y Glitch */
 .tv-static {
     position: absolute;
     width: 100%; height: 100%;
@@ -84,7 +84,6 @@ body {
     opacity: 0.85;
 }
 
-/* GIF Distorsión VHS */
 .vhs-glitch {
     position: absolute;
     width: 100%; height: 100%;
@@ -104,22 +103,18 @@ body {
 
 .signal-on {
     display: none;
+    position: absolute;
+    width: 100%; height: 100%;
     z-index: 4;
 }
 
-/* --- EFECTO ABERRACIÓN CROMÁTICA + CORTES VERTICALES --- */
-/* Esta clase se activará por JS en el último paso sobre la Waifu */
+/* Filtro Avanzado de Aberración Cromática Sutil */
 .aberracion-vhs {
-    position: absolute;
-    width: 100%; height: 100%;
-    /* Generamos el desfase RGB duplicando sombras de color */
-    text-shadow: 2px 0 0 rgba(255,0,0,0.8), -2px 0 0 rgba(0,0,255,0.8);
-    box-shadow: inset 0 0 40px rgba(0,0,0,0.8);
-    /* Rompemos el anti-aliasing forzando el renderizado de píxeles puros */
+    text-shadow: 1.5px 0 0 rgba(255,0,0,0.6), -1.5px 0 0 rgba(0,0,255,0.6);
+    box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
     image-rendering: pixelated; 
     image-rendering: crisp-edges;
-    /* Disparamos las animaciones salvajes de cortes verticales y saltos */
-    animation: corteVertical 0.2s infinite steps(2), vibracionGlitched 0.1s infinite;
+    animation: corteVertical 0.3s infinite steps(2), vibracionGlitched 0.15s infinite;
 }
 
 /* Panel Lateral */
@@ -141,7 +136,7 @@ body {
 .tv-led.verde { background: #33ff33; box-shadow: 0 0 8px #33ff33; }
 .power-label { font-size: 6px; color: #a1a1aa; font-weight: bold; margin-top: -6px; }
 
-/* --- INDICADOR --- */
+/* --- INDICADOR Y DISQUETERA --- */
 .indicador-arrastre {
     margin-top: 15px;
     font-size: 11px;
@@ -150,7 +145,6 @@ body {
     animation: flotar 1.5s infinite ease-in-out;
 }
 
-/* --- DISQUETERA --- */
 .disquetera-unidad {
     margin-top: 10px;
     width: 180px;
@@ -177,33 +171,31 @@ body {
     box-shadow: 0 5px 10px rgba(0,0,0,0.4);
     display: flex; flex-direction: column; justify-content: space-between; align-items: center;
     padding: 5px; box-sizing: border-box;
-    transition: transform 0.1s ease-out;
+    transition: transform 0.4s cubic-bezier(0.1, 0.8, 0.3, 1);
 }
 
+/* Estados mecánicos del casete */
 .disquete.tragado {
-    transform: translateY(-65px) scale(0.85) !important;
-    pointer-events: none;
-    transition: transform 0.6s cubic-bezier(0.1, 0.8, 0.3, 1);
+    transform: translateY(-65px) scale(0.85);
 }
 
 .disquete-label { width: 100%; height: 32px; background: #fff; color: #000; font-size: 9px; font-weight: bold; text-align: center; line-height: 32px; border-radius: 2px; }
 .disquete-metal { width: 28px; height: 16px; background: #a1a1aa; border-bottom-left-radius: 2px; border-bottom-right-radius: 2px; }
 
-/* --- ANIMACIONES DE DISTORSIÓN RETRO SUAVES (ANTI-EPILEPSIA) --- */
+/* --- ANIMACIONES SUAVES ANTI-EPILEPSIA --- */
+@keyframes flotar { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
 
-/* Cortes verticales mucho más suaves, espaciados y con transiciones lentas */
 @keyframes corteVertical {
-    0% { clip-path: inset(0 0 0 0); transform: scaleX(1); filter: hue-rotate(0deg); }
+    0% { clip-path: inset(0 0 0 0); transform: scaleX(1); }
     15% { clip-path: inset(45% 0 50% 0); transform: scaleX(1.01) translateX(1px); }
-    17% { clip-path: inset(0 0 0 0); transform: scaleX(1); } /* Regresa rápido a la normalidad */
+    17% { clip-path: inset(0 0 0 0); transform: scaleX(1); }
     50% { clip-path: inset(80% 0 5% 0); transform: scaleX(0.99) translateX(-1px); }
     52% { clip-path: inset(0 0 0 0); transform: scaleX(1); }
-    75% { clip-path: inset(12% 0 80% 0); transform: scaleX(1.01) skewX(1deg); }
+    75% { clip-path: inset(12% 0 80% 0); transform: scaleX(1.01); }
     77% { clip-path: inset(0 0 0 0); transform: scaleX(1); }
     100% { clip-path: inset(0 0 0 0); transform: scaleX(1); }
 }
 
-/* Vibración reducida a la mitad y sin cambios bruscos de contraste */
 @keyframes vibracionGlitched {
     0% { transform: translate(0.5px, -0.5px); }
     25% { transform: translate(-0.5px, 0.5px); }
