@@ -3,29 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Retro TV Mobile</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Retro TV - Disculpa</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-    <!-- Mueble de la TV Vieja -->
     <div class="tv-mueble">
         <div class="antena izq"></div>
         <div class="antena der"></div>
 
         <div class="tv-frontal">
-            <!-- Pantalla CRT -->
             <div class="crt-pantalla" id="pantalla">
-                <!-- Capas de video/estática -->
                 <div class="tv-static" id="tvStatic"></div>
                 <div class="vhs-glitch" id="vhsGlitch"></div>
                 <div class="screen-glare"></div>
                 
                 <span id="screenText">TV APAGADA</span>
-                <div id="tvSignalAnimation" class="signal-on">📺 SINTONIZADO</div>
+                <div id="tvSignalAnimation" class="signal-on"></div>
             </div>
 
-            <!-- Panel de Controles Lateral -->
             <div class="tv-controles">
                 <div class="perilla"></div>
                 <div class="perilla"></div>
@@ -40,18 +36,15 @@
         </div>
     </div>
 
-    <!-- Indicador de Arrastre -->
     <div class="indicador-arrastre" id="indicador" style="display: none;">
         <span>▲ ARRASTRA EL DISQUETE ▲</span>
     </div>
 
-    <!-- Unidad de Disquetera Mecánica -->
     <div class="disquetera-unidad" id="dropZone">
         <div class="disquetera-capa-fondo"></div>
         
-        <!-- El disquete físico (Soporta Mouse y Touch) -->
         <div class="disquete" id="floppyDisk">
-            <div class="disquete-label">DANE</div>
+            <div class="disquete-label">DISCULPA</div>
             <div class="disquete-metal"></div>
         </div>
 
