@@ -56,7 +56,7 @@ function stopSoftNoise() {
     if(softNoiseNode) { try { softNoiseNode.stop(); } catch(e){} softNoiseNode = null; }
 }
 
-// ACCIÓN APAGAR TV (Resetea todo el entorno visual y sonoro)
+// ACCIÓN APAGAR TV (Resetea todo el entorno visual y frena en seco el audio)
 function apagarTelevisorCompleto() {
     tvEncendida = false;
     tvLed.className = 'tv-led';
@@ -77,7 +77,17 @@ function apagarTelevisorCompleto() {
 
     stopWhiteNoise();
     stopSoftNoise();
-    if(sintonizadoAudio) { try { sintonizadoAudio.pause(); } catch(e){} sintonizadoAudio = null; }
+    
+    // CORRECCIÓN DE AUDIO: Detener por completo el archivo .ogg y resetear su línea de tiempo
+    if (sintonizadoAudio) { 
+        try { 
+            sintonizadoAudio.pause(); 
+            sintonizadoAudio.currentTime = 0; 
+        } catch(e) {
+            console.log("Error al detener reproductor de audio:", e);
+        } 
+        sintonizadoAudio = null; 
+    }
 }
 
 // BOTÓN DE ENCENDIDO MANUAL
@@ -136,7 +146,7 @@ floppyDisk.addEventListener('touchstart', (e) => onDragStart(e.touches[0].client
 window.addEventListener('touchmove', (e) => onDragMove(e.touches[0].clientY));
 window.addEventListener('touchend', onDragEnd);
 
-/* --- SECUENCIA DE CANALES Y CORRECCIONES --- */
+/* --- SECUENCIA DE CANALES --- */
 function ejecutarSecuenciaRetro() {
     floppyDisk.classList.add('tragado');
     indicador.style.display = 'none';
@@ -170,20 +180,20 @@ function ejecutarSecuenciaRetro() {
     setTimeout(() => {
         if (!tvEncendida) return;
         
-        // CORRECCIÓN: Cortamos ruido fuerte y encendemos explícitamente el ruidito suave de fondo
         stopWhiteNoise(); 
         startSoftNoise(); 
         
         vhsGlitch.style.display = 'none';
         screenText.style.display = 'none';
         
-        // Verificación de imagen local (img.png), si falla usa el GIF online
+        // Verificación e inyección de imagen
         const imgFinal = new Image();
         imgFinal.src = 'img.png';
         imgFinal.onload = function() {
             tvSignalAnimation.style.backgroundImage = "url('img.png')";
         };
         imgFinal.onerror = function() {
+            // Fallback: Si no hay imagen local, se rompe con el GIF online
             tvSignalAnimation.style.backgroundImage = "url('https://media1.tenor.com/m/4TFhZEyUqyYAAAAC/anime-waifu.gif')";
         };
         
@@ -192,7 +202,9 @@ function ejecutarSecuenciaRetro() {
         tvSignalAnimation.style.width = "100%";
         tvSignalAnimation.style.height = "100%";
         tvSignalAnimation.style.display = 'block'; 
-        tvSignalAnimation.classList.add('aberracion-vhs');
+        
+        // Activamos la clase de aberración y distorsión física
+        tvSignalAnimation.className = "signal-on aberracion-vhs";
         
         tvLed.classList.remove('rojo');
         tvLed.classList.add('verde'); 
@@ -200,14 +212,14 @@ function ejecutarSecuenciaRetro() {
         // CARGA Y REPRODUCCIÓN DEL AUDIO
         sintonizadoAudio = new Audio('grabacion.ogg');
         
-        // Al terminar el ogg original se apaga todo
+        // Al terminar de hablar de forma natural, la TV se apaga por completo
         sintonizadoAudio.onended = apagarTelevisorCompleto;
 
         sintonizadoAudio.play().catch(error => {
             console.log("Simulador Local: Reproduciendo estática de fondo por 5 segundos.");
-            // Respaldo de 5 segundos con el ruidito suave sonando a tope
             setTimeout(() => {
-                apagarTelevisorCompleto();
+                // Si la TV sigue encendida y no se ha apagado a mano, corta el ciclo solo
+                if(tvEncendida) { apagarTelevisorCompleto(); }
             }, 5000);
         });
     }, 6500);
