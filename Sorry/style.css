@@ -1,4 +1,3 @@
-
 body {
     background-color: #121214;
     display: flex;
@@ -10,13 +9,16 @@ body {
     font-family: 'Courier New', Courier, monospace;
     overflow: hidden;
     user-select: none;
-    touch-action: none; /* Evita que el celular haga scroll al arrastrar */
+    touch-action: none;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
-/* --- TELEVISIÓN RETRO --- */
+/* --- TELEVISIÓN RETRO RESPONSIVA --- */
 .tv-mueble {
-    width: 340px;
-    height: 250px;
+    width: 100%;
+    max-width: 360px; /* Evita que abarque todo el ancho en el celular */
+    height: 260px;
     background: linear-gradient(135deg, #5c4033, #3d2b22);
     border: 8px solid #2b1e18;
     border-radius: 20px;
@@ -46,8 +48,8 @@ body {
 }
 
 .crt-pantalla {
-    width: 230px;
-    height: 180px;
+    flex: 1;
+    height: 190px;
     background: #050505;
     border-radius: 25px;
     border: 5px solid #1f1a17;
@@ -56,6 +58,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-right: 8px;
 }
 
 .crt-pantalla.tv-on {
@@ -81,7 +84,7 @@ body {
     opacity: 0.85;
 }
 
-/* GIF Distorsión VHS (Imagen trabada/glitch) */
+/* GIF Distorsión VHS */
 .vhs-glitch {
     position: absolute;
     width: 100%; height: 100%;
@@ -101,31 +104,42 @@ body {
 
 .signal-on {
     display: none;
-    color: #33ff33;
-    font-size: 16px;
-    font-weight: bold;
-    text-shadow: 0 0 10px #33ff33;
     z-index: 4;
+}
+
+/* --- EFECTO ABERRACIÓN CROMÁTICA + CORTES VERTICALES --- */
+/* Esta clase se activará por JS en el último paso sobre la Waifu */
+.aberracion-vhs {
+    position: absolute;
+    width: 100%; height: 100%;
+    /* Generamos el desfase RGB duplicando sombras de color */
+    text-shadow: 2px 0 0 rgba(255,0,0,0.8), -2px 0 0 rgba(0,0,255,0.8);
+    box-shadow: inset 0 0 40px rgba(0,0,0,0.8);
+    /* Rompemos el anti-aliasing forzando el renderizado de píxeles puros */
+    image-rendering: pixelated; 
+    image-rendering: crisp-edges;
+    /* Disparamos las animaciones salvajes de cortes verticales y saltos */
+    animation: corteVertical 0.2s infinite steps(2), vibracionGlitched 0.1s infinite;
 }
 
 /* Panel Lateral */
 .tv-controles {
-    width: 50px; height: 90%;
+    width: 45px; height: 90%;
     display: flex; flex-direction: column; align-items: center; justify-content: space-around;
     background: #231813; border-radius: 5px;
 }
-.perilla { width: 20px; height: 20px; background: #402f27; border: 2px solid #120b08; border-radius: 50%; }
-.bocina-ranuras { width: 25px; height: 5px; background: #120b08; border-radius: 1px; }
+.perilla { width: 18px; height: 18px; background: #402f27; border: 2px solid #120b08; border-radius: 50%; }
+.bocina-ranuras { width: 22px; height: 4px; background: #120b08; border-radius: 1px; }
 
 .tv-power-btn {
-    width: 28px; height: 28px;
+    width: 26px; height: 26px;
     background: #3a2a22; border: 2px solid #120b08; border-radius: 50%;
     display: flex; align-items: center; justify-content: center; cursor: pointer;
 }
 .tv-led { width: 8px; height: 8px; background: #441111; border-radius: 50%; }
 .tv-led.rojo { background: #ff3333; box-shadow: 0 0 8px #ff3333; }
 .tv-led.verde { background: #33ff33; box-shadow: 0 0 8px #33ff33; }
-.power-label { font-size: 7px; color: #a1a1aa; font-weight: bold; margin-top: -6px; }
+.power-label { font-size: 6px; color: #a1a1aa; font-weight: bold; margin-top: -6px; }
 
 /* --- INDICADOR --- */
 .indicador-arrastre {
@@ -140,7 +154,7 @@ body {
 .disquetera-unidad {
     margin-top: 10px;
     width: 180px;
-    height: 150px;
+    height: 120px;
     position: relative;
     display: flex;
     justify-content: center;
@@ -159,14 +173,13 @@ body {
 
 .disquete {
     width: 80px; height: 80px; background: #1d4ed8; border-radius: 4px;
-    position: absolute; bottom: 10px; z-index: 2;
+    position: absolute; bottom: 5px; z-index: 2;
     box-shadow: 0 5px 10px rgba(0,0,0,0.4);
     display: flex; flex-direction: column; justify-content: space-between; align-items: center;
     padding: 5px; box-sizing: border-box;
     transition: transform 0.1s ease-out;
 }
 
-/* Animación cuando entra al lector */
 .disquete.tragado {
     transform: translateY(-65px) scale(0.85) !important;
     pointer-events: none;
@@ -176,4 +189,25 @@ body {
 .disquete-label { width: 100%; height: 32px; background: #fff; color: #000; font-size: 9px; font-weight: bold; text-align: center; line-height: 32px; border-radius: 2px; }
 .disquete-metal { width: 28px; height: 16px; background: #a1a1aa; border-bottom-left-radius: 2px; border-bottom-right-radius: 2px; }
 
-@keyframes flotar { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+/* --- ANIMACIONES DE DISTORSIÓN RETRO SUAVES (ANTI-EPILEPSIA) --- */
+
+/* Cortes verticales mucho más suaves, espaciados y con transiciones lentas */
+@keyframes corteVertical {
+    0% { clip-path: inset(0 0 0 0); transform: scaleX(1); filter: hue-rotate(0deg); }
+    15% { clip-path: inset(45% 0 50% 0); transform: scaleX(1.01) translateX(1px); }
+    17% { clip-path: inset(0 0 0 0); transform: scaleX(1); } /* Regresa rápido a la normalidad */
+    50% { clip-path: inset(80% 0 5% 0); transform: scaleX(0.99) translateX(-1px); }
+    52% { clip-path: inset(0 0 0 0); transform: scaleX(1); }
+    75% { clip-path: inset(12% 0 80% 0); transform: scaleX(1.01) skewX(1deg); }
+    77% { clip-path: inset(0 0 0 0); transform: scaleX(1); }
+    100% { clip-path: inset(0 0 0 0); transform: scaleX(1); }
+}
+
+/* Vibración reducida a la mitad y sin cambios bruscos de contraste */
+@keyframes vibracionGlitched {
+    0% { transform: translate(0.5px, -0.5px); }
+    25% { transform: translate(-0.5px, 0.5px); }
+    50% { transform: translate(1px, 0px); }
+    75% { transform: translate(-1px, -0.5px); }
+    100% { transform: translate(0, 0); }
+}
