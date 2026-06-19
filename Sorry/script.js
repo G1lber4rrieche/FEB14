@@ -1,4 +1,3 @@
-
 const powerBtn = document.getElementById('powerBtn');
 const tvLed = document.getElementById('tvLed');
 const pantalla = document.getElementById('pantalla');
@@ -13,7 +12,7 @@ const indicador = document.getElementById('indicador');
 let audioCtx, noiseNode, softNoiseNode, sintonizadoAudio;
 let tvEncendida = false;
 
-// 1. RUIDO BLANCO (Estática pesada/clásica)
+// 1. RUIDO BLANCO (Interferencia pesada de fondo)
 function startWhiteNoise() {
     if (noiseNode) return;
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -39,16 +38,15 @@ function stopWhiteNoise() {
     if(noiseNode) { try { noiseNode.stop(); } catch(e){} noiseNode = null; }
 }
 
-// 2. RUIDITO BONITO (Estática suave para Canal 1)
+// 2. RUIDITO BONITO (Fondo analógico suave que acompaña la sintonía)
 function startSoftNoise() {
     if (softNoiseNode) return;
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     softNoiseNode = audioCtx.createOscillator();
     const gainNode = audioCtx.createGain();
-    
     softNoiseNode.type = 'triangle'; 
     softNoiseNode.frequency.setValueAtTime(150, audioCtx.currentTime); 
-    gainNode.gain.setValueAtTime(0.08, audioCtx.currentTime);
-    
+    gainNode.gain.setValueAtTime(0.06, audioCtx.currentTime);
     softNoiseNode.connect(gainNode);
     gainNode.connect(audioCtx.destination);
     softNoiseNode.start();
@@ -58,17 +56,31 @@ function stopSoftNoise() {
     if(softNoiseNode) { try { softNoiseNode.stop(); } catch(e){} softNoiseNode = null; }
 }
 
-function playSintonizadoAudio() {
-    // Apuntamos al archivo .ogg con el ruido de lluvia real
-    sintonizadoAudio = new Audio('grabacion.ogg');
-    sintonizadoAudio.volume = 0.85; // Súbele un poquito si la lluvia tapa mucho tu voz
-    sintonizadoAudio.loop = false;  // Se reproduce una sola vez
+// ACCIÓN APAGAR TV (Resetea todo el entorno visual y sonoro)
+function apagarTelevisorCompleto() {
+    tvEncendida = false;
+    tvLed.className = 'tv-led';
+    pantalla.className = 'crt-pantalla';
+    pantalla.style.background = '#050505';
+    tvStatic.style.display = 'none';
+    vhsGlitch.style.display = 'none';
+    tvSignalAnimation.style.display = 'none';
+    tvSignalAnimation.classList.remove('aberracion-vhs');
+    screenText.innerHTML = 'TV APAGADA';
+    screenText.style.color = '#a1a1aa';
+    screenText.style.display = 'block';
     
-    // Le damos PLAY
-    sintonizadoAudio.play().catch(e => console.log("Error al reproducir el audio .ogg:", e));
+    dropZone.style.opacity = '0.5';
+    indicador.style.display = 'none';
+    floppyDisk.classList.remove('tragado');
+    floppyDisk.style.transform = 'translateY(0px)';
+
+    stopWhiteNoise();
+    stopSoftNoise();
+    if(sintonizadoAudio) { try { sintonizadoAudio.pause(); } catch(e){} sintonizadoAudio = null; }
 }
 
-// BOTÓN POWER
+// BOTÓN DE ENCENDIDO MANUAL
 powerBtn.addEventListener('click', () => {
     if (!tvEncendida) {
         tvEncendida = true;
@@ -82,32 +94,11 @@ powerBtn.addEventListener('click', () => {
         indicador.style.display = 'block';
         startWhiteNoise(); 
     } else {
-        tvEncendida = false;
-        tvLed.className = 'tv-led';
-        pantalla.className = 'crt-pantalla';
-        pantalla.style.background = '#050505';
-        tvStatic.style.display = 'none';
-        vhsGlitch.style.display = 'none';
-        tvSignalAnimation.style.display = 'none';
-        screenText.innerHTML = 'TV APAGADA';
-        screenText.style.color = '#a1a1aa';
-        screenText.style.display = 'block';
-        
-        dropZone.style.opacity = '0.5';
-        indicador.style.display = 'none';
-        floppyDisk.classList.remove('tragado');
-        floppyDisk.style.transform = 'translateY(0px)';
-
-        // Quitar efectos de glitch al apagar
-        pantalla.style.animation = "none";
-
-        stopWhiteNoise();
-        stopSoftNoise();
-        if(sintonizadoAudio) { try { sintonizadoAudio.stop(); } catch(e){} }
+        apagarTelevisorCompleto();
     }
 });
 
-/* --- LÓGICA TOUCH MÓVIL Y DRAG MOUSE --- */
+/* --- SECCIÓN DRAG & DROP MÓVIL / PC --- */
 let isDragging = false;
 let startY = 0;
 let currentY = 0;
@@ -145,67 +136,79 @@ floppyDisk.addEventListener('touchstart', (e) => onDragStart(e.touches[0].client
 window.addEventListener('touchmove', (e) => onDragMove(e.touches[0].clientY));
 window.addEventListener('touchend', onDragEnd);
 
-/* --- LA SECUENCIA INTERACTIVA CORREGIDA --- */
+/* --- SECUENCIA DE CANALES Y CORRECCIONES --- */
 function ejecutarSecuenciaRetro() {
     floppyDisk.classList.add('tragado');
     indicador.style.display = 'none';
 
-    // PASO 1: CANAL 1 -> Entra Miku con ruidito bonito (A los 0.8s)
+    // Paso 1: Canal 1 (Miku)
     setTimeout(() => {
         if (tvEncendida) {
             stopWhiteNoise(); 
             startSoftNoise(); 
-            
-            // Aquí pones tu link de Miku cuando lo tengas
             tvStatic.style.backgroundImage = "url('https://media.tenor.com/images/d739e02aa3e75af0e671dc17403d3ec5/tenor.gif')"; 
             tvStatic.style.display = 'block'; 
-            
             screenText.innerHTML = '[ CANAL 1 ]';
             screenText.style.color = '#ffffff';
         }
     }, 800);
 
-    // PASO 2: SINCRONIZANDO VIDEO -> Glitch puro de carga y vuelve ruido fuerte (A los 3.5s)
+    // Paso 2: Sincronizando Video (Glitch)
     setTimeout(() => {
         if (tvEncendida) {
             stopSoftNoise();  
             startWhiteNoise(); 
-
             tvStatic.style.display = 'none';
-            
-            // GIF de estática de carga horizontal para la sincronización
             vhsGlitch.style.backgroundImage = "url('https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExbms1M216Ym0wY3JtcWoxZXN3bWptY3RwaXpxcmh0MHF6ZXN4N3lwayZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Yqn9tE2E00k4U/giphy.gif')";
             vhsGlitch.style.display = 'block'; 
-            
             screenText.innerHTML = '[ SINCRONIZANDO VIDEO... ]';
             screenText.style.color = '#ffff33';
         }
     }, 3500);
 
-    // PASO 3: SINTONIZADO + TU GIF CON FILTRO DE GLITCH INFINITO (A los 6.5s)
+    // Paso 3: Sintonizado (Imagen / Video Final)
     setTimeout(() => {
-        if (tvEncendida) {
-            stopWhiteNoise(); // Silencio de estática de fondo
-            vhsGlitch.style.display = 'none';
-            screenText.style.display = 'none';
-            
-            // Ponemos el GIF de la Waifu final en el contenedor de sintonía
-            tvSignalAnimation.style.backgroundImage = "url('./img.png')";
-            tvSignalAnimation.style.backgroundSize = "cover";
-            tvSignalAnimation.style.backgroundPosition = "center";
-            tvSignalAnimation.style.width = "100%";
-            tvSignalAnimation.style.height = "100%";
-            tvSignalAnimation.innerHTML = ""; // Quitamos el texto viejo de adentro
-            tvSignalAnimation.style.display = 'block'; 
-            
-            // EFECTO DE IMAGEN ROTA / DISCO PEGADO POR CSS CODIFICADO
-            // Hace que la pantalla completa vibre y tire glitches analógicos
-            pantalla.style.animation = "floatar 0.15s infinite steps(2), parpadeo 4s infinite ease-in-out";
-            
-            tvLed.classList.remove('rojo');
-            tvLed.classList.add('verde'); 
+        if (!tvEncendida) return;
+        
+        // CORRECCIÓN: Cortamos ruido fuerte y encendemos explícitamente el ruidito suave de fondo
+        stopWhiteNoise(); 
+        startSoftNoise(); 
+        
+        vhsGlitch.style.display = 'none';
+        screenText.style.display = 'none';
+        
+        // Verificación de imagen local (img.png), si falla usa el GIF online
+        const imgFinal = new Image();
+        imgFinal.src = 'img.png';
+        imgFinal.onload = function() {
+            tvSignalAnimation.style.backgroundImage = "url('img.png')";
+        };
+        imgFinal.onerror = function() {
+            tvSignalAnimation.style.backgroundImage = "url('https://media1.tenor.com/m/4TFhZEyUqyYAAAAC/anime-waifu.gif')";
+        };
+        
+        tvSignalAnimation.style.backgroundSize = "cover";
+        tvSignalAnimation.style.backgroundPosition = "center";
+        tvSignalAnimation.style.width = "100%";
+        tvSignalAnimation.style.height = "100%";
+        tvSignalAnimation.style.display = 'block'; 
+        tvSignalAnimation.classList.add('aberracion-vhs');
+        
+        tvLed.classList.remove('rojo');
+        tvLed.classList.add('verde'); 
 
-            playSintonizadoAudio(); // Aquí va a sonar tu .mp3 narrado
-        }
+        // CARGA Y REPRODUCCIÓN DEL AUDIO
+        sintonizadoAudio = new Audio('grabacion.ogg');
+        
+        // Al terminar el ogg original se apaga todo
+        sintonizadoAudio.onended = apagarTelevisorCompleto;
+
+        sintonizadoAudio.play().catch(error => {
+            console.log("Simulador Local: Reproduciendo estática de fondo por 5 segundos.");
+            // Respaldo de 5 segundos con el ruidito suave sonando a tope
+            setTimeout(() => {
+                apagarTelevisorCompleto();
+            }, 5000);
+        });
     }, 6500);
 }
