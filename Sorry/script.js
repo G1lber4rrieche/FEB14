@@ -9,8 +9,12 @@ const floppyDisk = document.getElementById('floppyDisk');
 const dropZone = document.getElementById('dropZone');
 const indicador = document.getElementById('indicador');
 
-let audioCtx, noiseNode, softNoiseNode;
+let audioCtx, noiseNode, softNoiseNode, sintonizadoAudio;
 let tvEncendida = false;
+
+// Pre-cargamos tu archivo local .ogg para que el navegador lo tenga listo
+sintonizadoAudio = new Audio('grabacion.ogg');
+sintonizadoAudio.preload = 'auto';
 
 // 1. RUIDO BLANCO (Interferencia pesada de fondo)
 function startWhiteNoise() {
@@ -38,7 +42,7 @@ function stopWhiteNoise() {
     if(noiseNode) { try { noiseNode.stop(); } catch(e){} noiseNode = null; }
 }
 
-// 2. RUIDITO BONITO (Fondo analógico suave generado por código para iPhone)
+// 2. RUIDITO BONITO (Fondo analógico suave que acompaña tu voz)
 function startSoftNoise() {
     if (softNoiseNode) return;
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -46,7 +50,7 @@ function startSoftNoise() {
     const gainNode = audioCtx.createGain();
     softNoiseNode.type = 'triangle'; 
     softNoiseNode.frequency.setValueAtTime(150, audioCtx.currentTime); 
-    gainNode.gain.setValueAtTime(0.06, audioCtx.currentTime);
+    gainNode.gain.setValueAtTime(0.04, audioCtx.currentTime); // Un pelo más suave para que no tape tu voz
     softNoiseNode.connect(gainNode);
     gainNode.connect(audioCtx.destination);
     softNoiseNode.start();
@@ -56,15 +60,22 @@ function stopSoftNoise() {
     if(softNoiseNode) { try { softNoiseNode.stop(); } catch(e){} softNoiseNode = null; }
 }
 
-// TRUCO DE AUDIO PARA IPHONE (Activa los permisos táctiles integrados)
-function desbloquearAudioIOS() {
+// TRUCO PARA IPHONE Y NAVEGADORES MODERNOS: Desbloquea el permiso de audio al tocar la pantalla
+function desbloquearAudioSistemas() {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') {
         audioCtx.resume();
     }
+    // Reproduce y pausa tu audio un milisegundo para engañar al iPhone y ganar el permiso
+    if (sintonizadoAudio) {
+        sintonizadoAudio.play().then(() => {
+            sintonizadoAudio.pause();
+            sintonizadoAudio.currentTime = 0;
+        }).catch(e => console.log("Permiso de audio en espera..."));
+    }
 }
 
-// ACCIÓN APAGAR TV (Frena todo en seco al instante)
+// ACCIÓN APAGAR TV (Frena todo en seco)
 function apagarTelevisorCompleto() {
     tvEncendida = false;
     tvLed.className = 'tv-led';
@@ -85,11 +96,18 @@ function apagarTelevisorCompleto() {
 
     stopWhiteNoise();
     stopSoftNoise();
+
+    if (sintonizadoAudio) {
+        try {
+            sintonizadoAudio.pause();
+            sintonizadoAudio.currentTime = 0;
+        } catch(e) {}
+    }
 }
 
 // BOTÓN DE ENCENDIDO MANUAL
 powerBtn.addEventListener('click', () => {
-    desbloquearAudioIOS();
+    desbloquearAudioSistemas();
     if (!tvEncendida) {
         tvEncendida = true;
         tvLed.classList.add('rojo');
@@ -113,7 +131,7 @@ let currentY = 0;
 
 function onDragStart(yPosition) {
     if (!tvEncendida || floppyDisk.classList.contains('tragado')) return;
-    desbloquearAudioIOS(); 
+    desbloquearAudioSistemas(); // Desbloquea audio al arrastrar en móvil o PC
     isDragging = true;
     startY = yPosition;
 }
@@ -145,7 +163,7 @@ floppyDisk.addEventListener('touchstart', (e) => onDragStart(e.touches[0].client
 window.addEventListener('touchmove', (e) => onDragMove(e.touches[0].clientY));
 window.addEventListener('touchend', onDragEnd);
 
-/* --- SECUENCIA DE CANALES SIMULADA POR CÓDIGO --- */
+/* --- SECUENCIA DE CANALES REAL --- */
 function ejecutarSecuenciaRetro() {
     floppyDisk.classList.add('tragado');
     indicador.style.display = 'none';
@@ -170,17 +188,17 @@ function ejecutarSecuenciaRetro() {
             tvStatic.style.display = 'none';
             vhsGlitch.style.backgroundImage = "url('https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExbms1M216Ym0wY3JtcWoxZXN3bWptY3RwaXpxcmh0MHF6ZXN4N3lwayZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Yqn9tE2E00k4U/giphy.gif')";
             vhsGlitch.style.display = 'block'; 
-            screenText.innerHTML = '[ SINCRONIZANDO VIDEO... ]';
+            screenText.innerHTML = '[ SIN CRONIZANDO VIDEO... ]';
             screenText.style.color = '#ffff33';
         }
     }, 3500);
 
-    // Paso 3: Sintonizado (Muestra tu foto local img.png y activa ruido analógico por código)
+    // Paso 3: Sintonizado (Tu Foto + Tu voz real en grabacion.ogg)
     setTimeout(() => {
         if (!tvEncendida) return;
         
         stopWhiteNoise(); 
-        startSoftNoise(); // Sonará la estática limpia directo en el iPhone
+        startSoftNoise(); // Mantiene la estática suave de fondo sumada a tu lluvia
         
         vhsGlitch.style.display = 'none';
         screenText.style.display = 'none';
@@ -201,18 +219,24 @@ function ejecutarSecuenciaRetro() {
         tvSignalAnimation.style.height = "100%";
         tvSignalAnimation.style.display = 'block'; 
         
-        // Rompe la imagen estática usando la clase del CSS
+        // Aplica el efecto de romper la imagen en la foto fija
         tvSignalAnimation.className = "signal-on aberracion-vhs";
         
         tvLed.classList.remove('rojo');
         tvLed.classList.add('verde'); 
 
-        // Deja la imagen rompiéndose por 10 segundos en pantalla y luego apaga la TV
-        setTimeout(() => {
-            if (tvEncendida) { 
-                apagarTelevisorCompleto(); 
-            }
-        }, 10000); 
+        // CONFIGURACIÓN Y REPRODUCCIÓN DE TU AUDIO REAL
+        sintonizadoAudio.volume = 1.0;
+        
+        // Cuando termine tu voz de verdad, se apaga la TV sola
+        sintonizadoAudio.onended = apagarTelevisorCompleto;
+
+        sintonizadoAudio.play().catch(error => {
+            console.log("Error de reproducción, activando respaldo de 5s.");
+            setTimeout(() => {
+                if (tvEncendida) { apagarTelevisorCompleto(); }
+            }, 5000);
+        });
 
     }, 6500);
 }
