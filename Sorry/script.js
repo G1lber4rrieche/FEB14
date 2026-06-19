@@ -190,7 +190,7 @@ function ejecutarSecuenciaRetro() {
             screenText.style.display = 'none';
             
             // Ponemos el GIF de la Waifu final en el contenedor de sintonía
-            tvSignalAnimation.style.backgroundImage = "url('https://media1.tenor.com/m/4TFhZEyUqyYAAAAC/anime-waifu.gif')";
+            tvSignalAnimation.style.backgroundImage = "url('./img.png')";
             tvSignalAnimation.style.backgroundSize = "cover";
             tvSignalAnimation.style.backgroundPosition = "center";
             tvSignalAnimation.style.width = "100%";
